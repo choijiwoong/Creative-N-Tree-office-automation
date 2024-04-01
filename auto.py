@@ -109,23 +109,40 @@ for index, row in summary_excel.iterrows():
 print("처리완료")
 
 # 동료평가 처리
-print("5. 동료평가 성적 처리중...", end="")
-peer_eval_excel = pd.read_excel(path5, usecols=[2, 11])
-for index, row in summary_excel.iterrows():
-    summary_excel.loc[index, '동료평가 - 20점\n(13점 미만 F)'] = 0
+print("5. 동료평가 성적 전처리중...", end="")
+peer_eval_excel = pd.read_excel(path5, usecols=[2, 4, 11])
 
+for index, row in peer_eval_excel.iterrows():
+    student_id1 = row['피평가자 학번']
+    student_id2 = row['평가자 학번']
+    group1 = ''
+    group2 = ''
+    for index2, row2 in summary_excel.iterrows():
+        if row2['학번'] == student_id1:
+            group1 = row2['그룹\n(팀/불참)']
+        elif row2['학번'] == student_id2:
+            group2 = row2['그룹\n(팀/불참)']
+    if group1 != group2:
+        peer_eval_excel = peer_eval_excel.drop([index])
+
+print("동료평가 성적 처리중...", end="")
 for index, row in summary_excel.iterrows():
     student_id = row['학번']
     count = 0
     sum_grade = 0.0
     avg_grade = 0.0
+
+    student2_list=[]
     for index2, row2 in peer_eval_excel.iterrows():
         if row2['피평가자 학번'] == student_id:
             count = count + 1
             sum_grade = sum_grade + int(row2['총점 / 만점'].split('/')[0])
+
     if count != 0:
         avg_grade = sum_grade / count
-    avg_grade = avg_grade*100//1/100
+        avg_grade = avg_grade * 100 // 1 / 100
+    if count == 0:
+        avg_grade = 0.0
     summary_excel.at[index, '동료평가 - 20점\n(13점 미만 F)'] = avg_grade
 print("처리완료")
 
